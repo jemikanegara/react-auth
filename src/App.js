@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import Login from "./Login";
 import axios from "axios";
 import Register from "./Register";
+import EmployeeDetail from "./EmployeeDetail";
+
 class App extends Component {
   constructor() {
     super();
@@ -52,18 +54,26 @@ class App extends Component {
   };
 
   getEmployeesData = () => {
-    axios
-      .get("https://impact-byte-demo.herokuapp.com/employees", {
-        headers: {
-          authorization: `bearer ${localStorage.token}`
-        }
-      })
-      .then(res =>
-        this.setState({
-          employeesData: res.data.data
+    if (localStorage.token !== undefined) {
+      axios
+        .get("https://impact-byte-demo.herokuapp.com/employees", {
+          headers: {
+            authorization: `bearer ${localStorage.token}`
+          }
         })
-      )
-      .catch(err => console.log(err));
+        .then(res =>
+          this.setState({
+            employeesData: res.data.data
+          })
+        )
+        .catch(err => console.log(err));
+    } else {
+      alert("You are not logged in");
+    }
+  };
+
+  handleLogOut = () => {
+    localStorage.removeItem("token");
   };
 
   render() {
@@ -75,14 +85,18 @@ class App extends Component {
         {this.state.isAuth === true && <h1>You are authenticated!</h1>}
         {this.state.isAuth === false && <h1>You are not authenticated!</h1>}
         <button onClick={this.getEmployeesData}>Get Employee</button>
-        {this.state.employeesData.map((employee, index) => (
-          <div key={index}>
-            <li>Name : {`${employee.first_name} ${employee.last_name}`}</li>
-            <li>Gender: {employee.gender}</li>
-            <li>Birth Date: {employee.birth_date}</li>
-            <hr />
-          </div>
-        ))}
+        <button onClick={this.handleLogOut}>Log Out</button>
+        {this.state.employeesData.length > 0 &&
+          this.state.employeesData.map((employee, index) => (
+            <EmployeeDetail
+              key={index}
+              emp_no={employee.emp_no}
+              first_name={employee.first_name}
+              last_name={employee.last_name}
+              birth_date={employee.birth_date}
+              gender={employee.gender}
+            />
+          ))}
       </div>
     );
   }
